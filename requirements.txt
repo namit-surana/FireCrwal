@@ -1,0 +1,10 @@
+# Core Dependencies
+firecrawl
+requests
+python-dotenv
+
+# Data Processing
+pydantic
+
+# Utilities
+rich
