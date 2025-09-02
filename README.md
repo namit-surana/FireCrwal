@@ -44,19 +44,29 @@ FIRECRAWL_API_KEY=your_actual_firecrawl_api_key_here
 ```
 
 ### 2. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ### 3. Test System
-```bash
-python start.py
-```
+   ```bash
+   python start.py
+   ```
 
 ### 4. Run Discovery Demo
 ```bash
 python demo_discovery.py
 ```
+
+## ⚠️ Free Tier Limitations
+
+**Important**: This system is configured for Firecrawl's free tier:
+- **Rate Limit**: 5 requests per minute
+- **Concurrent Jobs**: 1 at a time
+- **Discovery Limits**: Reduced to 20 pages max, 3 depth max
+- **Timeout**: 2 minutes maximum
+
+For production use, consider upgrading your Firecrawl plan at [https://firecrawl.dev/pricing](https://firecrawl.dev/pricing)
 
 ## 🔍 Complete System Flow
 
@@ -197,14 +207,11 @@ Output: Structured Discovery Results
 
 - **`_map_website_structure(official_link, certification_data)`**
   - **Purpose**: Maps website using Firecrawl Map endpoint
-  - **Search Strategy**:
-    1. Generates search terms from certification data
-    2. Maps with each search term for comprehensive coverage
-    3. Limits results to 50 URLs per search term
-  - **Search Terms Generated**:
-    - Certification name components
-    - Issuing body acronyms
-    - Common certification terms
+  - **Mapping Strategy**:
+    1. Single Map API call without search terms
+    2. Discovers all available links on the website
+    3. Limits results to 100 URLs for performance
+  - **No Search Terms**: Simple discovery of all available website structure
 
 - **`_crawl_website_pages(official_link, certification_data, options)`**
   - **Purpose**: Crawls website for additional pages
@@ -227,14 +234,7 @@ Output: Structured Discovery Results
     6. `regional_offices` - Office locations
   - **Algorithm**: Pattern-based scoring with fallback categorization
 
-- **`_generate_search_terms(certification_data)`**
-  - **Purpose**: Generates intelligent search terms for website mapping
-  - **Strategy**:
-    1. Extracts key terms from certification name
-    2. Finds acronyms from issuing body
-    3. Adds common certification terms
-    4. Removes duplicates and limits to 10 terms
-  - **Example**: "FSSAI License" → ["fssai", "license", "certification", "registration"]
+
 
 #### `content_categorizer.py` - AI-Powered Content Classification
 
@@ -408,9 +408,9 @@ Output: Structured Discovery Results
 ```
 Input: Official website URL + Certification data
     ↓
-Search Term Generation
+Direct Website Mapping (no search terms)
     ↓
-Firecrawl Map API calls (multiple search terms)
+Firecrawl Map API call (discover all available links)
     ↓
 Website Crawling (intelligent path filtering)
     ↓
@@ -522,14 +522,14 @@ result = engine.discover_certification(cert_data, discovery_options)
 ### Environment Variables
 ```env
 FIRECRAWL_API_KEY=your_api_key_here
-MAX_REQUESTS_PER_MINUTE=60
-MAX_CONCURRENT_JOBS=10
+MAX_REQUESTS_PER_MINUTE=5
+MAX_CONCURRENT_JOBS=1
 ```
 
 ### Discovery Options
-- **max_pages**: Maximum pages to discover (default: 200)
-- **max_depth**: Maximum crawl depth (default: 8)
-- **timeout**: Discovery timeout in seconds (default: 300)
+- **max_pages**: Maximum pages to discover (default: 20 for free tier)
+- **max_depth**: Maximum crawl depth (default: 3 for free tier)
+- **timeout**: Discovery timeout in seconds (default: 120 for free tier)
 
 ## 📈 Output Structure
 

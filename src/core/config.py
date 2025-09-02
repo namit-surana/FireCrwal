@@ -26,9 +26,9 @@ class Config:
         else:
             self.firecrawl_api_key: str = os.getenv("FIRECRAWL_API_KEY", "")
         
-        # Rate limiting
-        self.max_requests_per_minute: int = int(os.getenv("MAX_REQUESTS_PER_MINUTE", "60"))
-        self.max_concurrent_jobs: int = int(os.getenv("MAX_CONCURRENT_JOBS", "10"))
+        # Rate limiting - adjusted for free tier
+        self.max_requests_per_minute: int = int(os.getenv("MAX_REQUESTS_PER_MINUTE", "5"))  # Free tier: 5 req/min
+        self.max_concurrent_jobs: int = int(os.getenv("MAX_CONCURRENT_JOBS", "1"))  # Free tier: 1 concurrent job
     
     def validate(self) -> bool:
         """Simple validation"""

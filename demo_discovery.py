@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Demo script for BlueJay TIC Certification Database Discovery Engine
+Simple Demo script for BlueJay TIC Certification Database Discovery Engine
 """
 
 import os
@@ -11,198 +11,131 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
+from discovery.firecrawl_client import FirecrawlClient
+
+
 def main():
     """Main demo function"""
     print("🚀 BlueJay TIC Certification Database - Discovery Engine Demo")
     print("=" * 70)
     
     try:
-        # Import required modules
-        from core.config import get_config
-        from discovery.discovery_engine import DiscoveryEngine
-        from discovery.firecrawl_client import FirecrawlClient
-        
         print("✅ Core modules imported successfully")
-        
-        # Create configuration
-        config = get_config(test_mode=False)
-        
-        # Check configuration
-        if not config.validate():
-            print("❌ Configuration validation failed")
-            print("Please check your environment variables and API keys")
-            return False
-        
-        print("✅ Configuration validated successfully")
         
         # Initialize Firecrawl client
         print("\n🌐 Initializing Firecrawl client...")
-        firecrawl_client = FirecrawlClient()
+        firecrawl_client, success, error_msg = FirecrawlClient.create_client(test_connection=False)
+        
+        if not success:
+            print(f"❌ {error_msg}")
+            if "Configuration validation failed" in error_msg:
+                print("Please check your environment variables and API keys")
+            return False
+        
         print("✅ Firecrawl client ready")
         
-        # Initialize discovery engine
-        print("\n🔍 Initializing discovery engine...")
-        discovery_engine = DiscoveryEngine(firecrawl_client)
-        print("✅ Discovery engine ready")
+        # Get certification data from user
+        print("\n📝 Enter certification details:")
         
-        # FSSAI certification data
-        fssai_certification = {
-            "name": "FSSAI License/Registration",
-            "issuing_body": "Food Safety and Standards Authority of India (FSSAI)",
-            "region": "India",
-            "description": "Mandatory license for any food business in India, including honey export, proving compliance with Indian food safety and quality standards. Required for production, packaging, storage, and export of honey.",
-            "classifications": ["product", "market_access"],
-            "mandatory": True,
-            "validity": "5 years, renewable",
-            "official_link": "https://foscos.fssai.gov.in/"
-        }
+        certification_data = {}
+        certification_data["name"] = input("Enter certification name (e.g., FSSAI License/Registration): ").strip()
+        certification_data["issuing_body"] = input("Enter issuing body (e.g., Food Safety and Standards Authority of India): ").strip()
+        certification_data["region"] = input("Enter region/country (e.g., India): ").strip()
+        certification_data["description"] = input("Enter description (optional): ").strip()
+        certification_data["official_link"] = input("Enter official website URL (e.g., https://foscos.fssai.gov.in/): ").strip()
         
-        print(f"\n🎯 Starting discovery for: {fssai_certification['name']}")
-        print(f"   Issuing Body: {fssai_certification['issuing_body']}")
-        print(f"   Region: {fssai_certification['region']}")
-        print(f"   Official Link: {fssai_certification['official_link']}")
+        # Validate required fields
+        if not certification_data["name"] or not certification_data["issuing_body"] or not certification_data["official_link"]:
+            print("❌ Missing required fields. Please provide name, issuing body, and official link.")
+            return False
         
-        # Discovery options
-        discovery_options = {
-            "max_pages": 100,  # Limit for demo
-            "max_depth": 5,    # Limit depth for demo
-            "timeout": 300     # 5 minutes timeout
-        }
+        print(f"\n🎯 Starting discovery for: {certification_data['name']}")
+        print(f"   Issuing Body: {certification_data['issuing_body']}")
+        print(f"   Region: {certification_data['region']}")
+        print(f"   Official Link: {certification_data['official_link']}")
         
-        print(f"\n⚙️  Discovery options: {json.dumps(discovery_options, indent=2)}")
-        
-        # Start discovery
-        print("\n🚀 Starting discovery process...")
-        print("   This may take several minutes depending on website size...")
-        
-        discovery_result = discovery_engine.discover_certification(
-            fssai_certification,
-            discovery_options
-        )
-        
-        print("✅ Discovery completed successfully!")
-        
-        # Display discovery summary
-        print("\n📊 Discovery Summary")
+        # Ask if user wants to map the website
+        print(f"\n🗺️  Website Mapping")
         print("=" * 50)
         
-        summary = discovery_engine.get_discovery_summary(discovery_result)
+        map_website = input("Do you want to map the official website? (y/n): ").strip().lower()
         
-        print(f"Certification: {summary['certification']['name']}")
-        print(f"Issuing Body: {summary['certification']['issuing_body']}")
-        print(f"Region: {summary['certification']['region']}")
-        print()
+        if map_website in ['y', 'yes']:
+            print(f"\n🚀 Starting website mapping for: {certification_data['official_link']}")
+            
+            # Ask for optional search term
+            search_term = input("Enter optional search term to filter URLs (press Enter to skip): ").strip()
+            
+            # Call the website mapping function
+            try:
+                print("   This may take a few minutes depending on website size...")
+                
+                # Use the simple mapping function
+                links = firecrawl_client.map_website_simple(
+                    url=certification_data["official_link"],
+                    search=search_term if search_term else None
+                )
+                
+                if not links:
+                    print("❌ No links found")
+                else:
+                    print("✅ Website mapping completed successfully!")
+                    
+                    print(f"\n📊 Website Map Results")
+                    print("=" * 50)
+                    print(f"Total links discovered: {len(links)}")
+                    
+                    # Show first 10 links with metadata
+                    print(f"\n📋 Sample Discovered Links:")
+                    print("-" * 50)
+                    for i, link in enumerate(links[:10], 1):
+                        print(f"{i:3d}. {link['url']}")
+                        if link['title']:
+                            print(f"     Title: {link['title']}")
+                        if link['description']:
+                            print(f"     Description: {link['description'][:100]}...")
+                        print()
+                    
+                    if len(links) > 10:
+                        print(f"     ... and {len(links) - 10} more links")
+                    
+                    # Save results with certification data
+                    output_file = f"certification_map_{certification_data['name'].replace(' ', '_').replace('/', '_')}.json"
+                    export_data = {
+                        "certification": certification_data,
+                        "search_term": search_term if search_term else None,
+                        "mapping_timestamp": str(Path().cwd()),
+                        "total_links": len(links),
+                        "links": links
+                    }
+                    
+                    with open(output_file, "w", encoding="utf-8") as f:
+                        json.dump(export_data, f, indent=2, ensure_ascii=False)
+                    
+                    print(f"\n💾 Results exported to: {output_file}")
+                    
+            except Exception as e:
+                print(f"❌ Website mapping failed: {e}")
+        else:
+            print("⏭️  Skipping website mapping")
         
-        print("Discovery Statistics:")
-        print(f"  Total Pages Discovered: {summary['discovery_stats']['total_pages_discovered']}")
-        print(f"  Relevant Pages Found: {summary['discovery_stats']['relevant_pages_found']}")
-        print(f"  Content Categories Found: {summary['discovery_stats']['content_categories_found']}")
-        print(f"  Discovery Time: {summary['discovery_stats']['discovery_time_seconds']:.2f} seconds")
-        print()
+        # Display summary
+        print(f"\n🎉 Discovery demo completed successfully!")
+        print(f"📊 Summary:")
+        print(f"   • Certification: {certification_data['name']}")
+        print(f"   • Issuing Body: {certification_data['issuing_body']}")
+        print(f"   • Region: {certification_data['region']}")
+        print(f"   • Official Link: {certification_data['official_link']}")
         
-        print("Content Summary:")
-        for category, count in summary['content_summary'].items():
-            print(f"  {category}: {count} pages")
-        print()
+        if map_website in ['y', 'yes'] and 'links' in locals():
+            print(f"   • Search Term: {search_term if search_term else 'None (all URLs)'}")
+            print(f"   • Links Discovered: {len(links)}")
+            print(f"   • Export File: {output_file}")
         
-        print(f"Overall Quality Score: {summary['quality_score']:.2f}/100")
-        
-        # Display quality metrics
-        print("\n🔍 Quality Metrics")
-        print("=" * 50)
-        
-        quality_metrics = discovery_result.quality_metrics
-        print(f"Overall Score: {quality_metrics['overall_score']:.2f}/100")
-        print()
-        
-        score_breakdown = quality_metrics['score_breakdown']
-        print("Score Breakdown:")
-        print(f"  Relevance: {score_breakdown['relevance']:.2f}/100")
-        print(f"  Completeness: {score_breakdown['completeness']:.2f}/100")
-        print(f"  Freshness: {score_breakdown['freshness']:.2f}/100")
-        print(f"  Accessibility: {score_breakdown['accessibility']:.2f}/100")
-        print()
-        
-        print("Quality Metrics:")
-        print(f"  Coverage Percentage: {quality_metrics['coverage_percentage']:.1f}%")
-        print(f"  Depth Score: {quality_metrics['depth_score']:.1f}/100")
-        print()
-        
-        # Display quality insights
-        print("💡 Quality Insights")
-        print("=" * 50)
-        
-        insights = quality_metrics['quality_insights']
-        
-        if insights.get('strengths'):
-            print("Strengths:")
-            for strength in insights['strengths']:
-                print(f"  ✅ {strength}")
-            print()
-        
-        if insights.get('weaknesses'):
-            print("Weaknesses:")
-            for weakness in insights['weaknesses']:
-                print(f"  ❌ {weakness}")
-            print()
-        
-        if insights.get('opportunities'):
-            print("Opportunities:")
-            for opportunity in insights['opportunities']:
-                print(f"  🚀 {opportunity}")
-            print()
-        
-        if insights.get('threats'):
-            print("Threats:")
-            for threat in insights['threats']:
-                print(f"  ⚠️  {threat}")
-            print()
-        
-        # Display recommendations
-        print("📋 Recommendations")
-        print("=" * 50)
-        
-        recommendations = quality_metrics['recommendations']
-        for i, recommendation in enumerate(recommendations, 1):
-            print(f"  {i}. {recommendation}")
-        print()
-        
-        # Export results
-        print("💾 Exporting Results")
-        print("=" * 50)
-        
-        # Export to JSON
-        json_output = discovery_engine.export_discovery_result(discovery_result, "json")
-        
-        # Save to file
-        output_file = "fssai_discovery_results.json"
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(json_output)
-        
-        print(f"✅ Results exported to: {output_file}")
-        print(f"   File size: {len(json_output)} characters")
-        
-        # Display sample discovered content
-        print("\n📄 Sample Discovered Content")
-        print("=" * 50)
-        
-        for category, content_list in discovery_result.discovered_content.items():
-            if content_list:
-                print(f"\n{category.upper()} ({len(content_list)} pages):")
-                for i, content_item in enumerate(content_list[:3], 1):  # Show first 3 items
-                    print(f"  {i}. {content_item['title']}")
-                    print(f"     URL: {content_item['url']}")
-                    if content_item.get('content_preview'):
-                        preview = content_item['content_preview'][:100] + "..." if len(content_item['content_preview']) > 100 else content_item['content_preview']
-                        print(f"     Preview: {preview}")
-                    print()
-        
-        print("🎉 Discovery demo completed successfully!")
         print("\nNext steps:")
-        print("1. Review the JSON output file")
-        print("2. Analyze quality metrics and insights")
-        print("3. Use recommendations to improve discovery")
-        print("4. Move to content extraction phase")
+        print("1. Review the exported results")
+        print("2. Use the discovered URLs for further analysis")
+        print("3. Extract content from relevant pages")
         
         return True
         
@@ -214,6 +147,7 @@ def main():
         print("3. Check Firecrawl API status")
         print("4. Review error logs for details")
         return False
+
 
 if __name__ == "__main__":
     success = main()
