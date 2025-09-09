@@ -327,3 +327,196 @@ def extract_information_prompt(raw_json, current_state):
     Example format (for reference):
     {json.dumps(current_state, indent=2, ensure_ascii=False)}
     """
+
+# ============================================================================
+# Pipeline 3 Prompts 
+# ============================================================================
+
+SYSTEM_PROMPT_P3_PARAMETER = """
+You are an expert structured data extractor for certifications.
+
+Property Definitions:
+- artifact_type (text enum, required): One of: product_certification, management_system_certification, registration, market_access_authorisation, shipment_document
+- name (text): Official scheme title as published by governing body (exact official name only)
+- aliases (text[]): List of common alternative names, abbreviations or legacy labels (0-5 entries)
+- issuing_body (text): Full proper name of the organization that issues/governs the scheme
+- region (text): Geographic scope (use: "EU/EEA", "United States", "Global", "China Mainland")
+- mandatory (bool): true if legally required to place products in region; false if voluntary
+- validity_period_months (number): Renewal cycle in months (e.g., 36 = 3 years; 0 = no fixed expiry)
+- overview (text): 1-2 sentence plain-language summary (max 400 UTF-8 characters)
+- full_description (text): 80-150 word paragraph describing purpose, scope, applicability, use cases
+- legal_reference (text): Official citation (e.g., "Directive 2011/65/EU", "ISO 9001:2015")
+- domain_tags (text[]): Pick 1-2 from controlled list (use snake_case)
+- scope_tags (text[]): 0-10 tokens defining product families/sectors (singular nouns, snake_case)
+- harmonized_standards (text[]): List specific EN/IEC/ISO test standards referenced
+- fee (text): Typical cost range with currency and context (e.g., "≈ €450 per model")
+- application_process (text): Brief bullet steps or URL describing how to obtain/renew (max 300 chars)
+- official_link (text): Canonical URL of official scheme documentation
+- updated_at (date): ISO-8601 UTC timestamp (YYYY-MM-DDThh:mm:ssZ) when record last reviewed
+- sources (text[]): List of all source URLs/PDFs used to populate this record
+- lead_time_days (number): Typical processing time from submission to issuance (calendar days, 0 if immediate)
+- processing_time_days (number): Internal administrative processing time (business days)
+- prerequisites (text[]): Required pre-conditions, prior certifications, or documentation needed
+- audit_scope (text[]): Areas/processes/systems covered during audit (management systems primarily)
+- test_items (text[]): Product components/materials/parameters tested (product certifications primarily)
+
+Rules:
+- Fill in only fields that can be explicitly inferred from the new content
+- Do not invent or add new fields beyond the provided state
+- Keep the JSON structure exactly the same as the input state
+- Use null or empty arrays for fields not found in the new content
+- Return **strict JSON only** with all fields present
+- Summarize or clean information as needed, keeping types consistent (string, boolean, list, number, etc.)
+"""
+
+SYSTEM_PROMPT_P3_Links= """You are an expert in analyzing certification-related web content and managing important links with state-based updates.
+
+**Rules**:
+1. Extract ALL clickable links from the new web search results markdown content.
+2. Filter out non-certification related links (e.g., social media, general navigation).
+3. Categorize links into the most relevant cluster:
+   - application: New license/registration, application forms, online portals, step-by-step guides
+   - requirements: Eligibility criteria, business types, technical requirements
+   - documentation: Required documents, templates, sample forms
+   - fees: Fee structures, payment methods, calculators
+   - renewal: License renewal, modifications, updates
+   - guidelines: Manuals, SOPs, best practices, technical guidelines
+   - support: FAQs, help documents, contact info
+   - compliance: Regulations, legal notices, official orders
+   - tracking: Application tracking, status portals
+   - special: Fast-track services, exemptions, special programs
+
+4. Assign importance to each link (1-10) based on criticality to the certification process:
+   - 10: Essential (application forms, main portal)
+   - 9: Critical requirements (eligibility, mandatory documents)
+   - 8: Important processes (renewal, fee payment)
+   - 7: Key guidance (manuals, step-by-step guides)
+   - 6: Support resources (FAQs, help)
+   - 5: Supplementary info (announcements, updates)
+   - 4: Background info (about pages, general info)
+   - 3: Related but not essential (news, events)
+   - 2: Minor relevance (social media, newsletters)
+   - 1: Minimal relevance (login pages, technical pages)
+
+5. Include **only links with importance >=7** in processing.
+
+6. Further categorize each link by file type:
+   - PDF: Links ending with .pdf extension
+   - Non-PDF: All other links (web pages, forms, portals, etc.)
+7. If a URL has **no title or description**, generate a concise, clear title and description using the URL path and context heuristics.
+
+9. Output **strict JSON** maintaining the exact structure of the input current state:
+
+{
+  "categories": {
+    "pdf": {
+      "application": [{"url": "...", "title": "...", "description": "...", "importance": 8},{"url": "...", "title": "...", "description": "...", "importance": 9}],
+      "requirements": [...],
+      "documentation": [...],
+      "fees": [...],
+      "renewal": [...],
+      "guidelines": [...],
+      "support": [...],
+      "compliance": [...],
+      "tracking": [...],
+      "special": [...]
+    },
+    "non-pdf": {
+      "application": [...],
+      "requirements": [...],
+      "documentation": [...],
+      "fees": [...],
+      "renewal": [...],
+      "guidelines": [...],
+      "support": [...],
+      "compliance": [...],
+      "tracking": [...],
+      "special": [...]
+    }
+  }
+}
+
+Important Notes:
+- Include importance score for each link
+- Maintain proper clustering - links must be in functionally correct categories
+- Only include clusters that have links. Omit empty clusters from the output.
+- Do not duplicate identical URLs in the same and different cluster
+"""
+
+
+def build_webpage_ingestion_prompt(current_state, webpage_data):
+    """Build prompt for ingesting webpage results for fill-in-the-blank functionality"""
+    return f"""
+Current state:
+{json.dumps(current_state, indent=2, ensure_ascii=False)}
+
+Webpage Data:
+{webpage_data}
+
+Task:
+- Update the current state with information from the webpage content using the property definitions in the SYSTEM_PROMPT
+- Fill in only fields that can be explicitly inferred from the content
+- Leave other fields as they are (null, empty, or [])
+- Return JSON matching exactly the state structure above
+- Do NOT invent fields or change the structure; only fill in relevant values
+- You should not restrict character limits - there is no rule on how many words should be in each field; when you find details relevant to a specific field, include ALL relevant information found in the content
+
+Return only the JSON object, no additional text.
+"""
+
+def p3_process_web_search_results(certification_info, web_search_json,
+                                  current_state=None):
+    """
+    Process web search results and update current state with 
+    relevance-based link management.
+
+    Args:
+        certification_info: Certification context
+        web_search_json: New web search results
+        current_state: Current important links state (optional)
+
+    Returns:
+        Prompt for LLM to process and update state
+    """
+    if current_state is None:
+        current_state = {
+            "categories": {
+                "pdf": {},
+                "non-pdf": {}
+            }
+        }
+
+    return f"""
+Current Important Links State:
+{json.dumps(current_state, indent=2, ensure_ascii=False)}
+
+Certification Context:
+{json.dumps(certification_info, indent=2, ensure_ascii=False)}
+
+New Web Search Results:
+{json.dumps(web_search_json, indent=2, ensure_ascii=False)}
+
+Task - State-Based Link Update:
+1. Extract ALL clickable links from the new web search results markdown content
+2. For each new link, analyze its relevance to the certification (importance 1-10)
+3. Filter to include only links with importance >=7
+4. Categorize by functional cluster AND file type (PDF vs non-PDF)
+5. Add all qualifying links (importance >=7) to the appropriate clusters
+   - Simply add links to their correct category and file type cluster
+   - No comparison with existing links needed - just keep adding
+6. Ensure proper clustering - links must be in the correct category based on 
+   their function
+7. Return updated state with the same JSON structure
+
+Output Requirements:
+- Maintain exact JSON schema structure as current state
+- Update only clusters that have changes
+- Keep existing high-relevance links unless replaced by higher-relevance ones
+- Ensure all links are properly clustered by function and file type
+- Include reasoning for any link replacements or additions
+
+Focus on:
+- Links embedded in the markdown content of search results
+- URL, title, and description from each web result
+- Creating meaningful descriptions for links without clear context
+- Maintaining link quality through relevance-based filtering"""
