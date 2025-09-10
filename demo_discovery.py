@@ -8,6 +8,7 @@ import sys
 import json
 from pathlib import Path
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
@@ -147,7 +148,31 @@ def main():
         print("3. Check Firecrawl API status")
         print("4. Review error logs for details")
         return False
+'''
+{'data': {'api_key': 'qwertyuiop'}}
+'''
+@app.post("/function_llm")
+def function_llm(item: data):
 
+    '''
+    run llm using the data
+
+    this section will be doing the main function of the llm work 
+    '''
+    resp = clause.run(data)
+
+    return {"body":resp}
+
+# ========
+# test using python code
+import requests
+resp = resquest.post("xxxxxx/function_llm", json={"data":{"api_key":"qwertyuiop"}})
+
+
+'''
+test using local cmd
+curl -X POST "http://localhost:8000/function_llm" -H "Content-Type: application/json" -d '{"data": {"api_key": "qwertyuiop"}}'
+'''
 
 if __name__ == "__main__":
     success = main()

@@ -1,0 +1,9 @@
+{
+  "certification": {
+    "name": "Restriction of Hazardous Substances (RoHS)",
+    "issuing_body": "European Commission",
+    "region": "EU/EEA",
+    "description": "Limits the use of hazardous substances (like lead, mercury, cadmium, etc.) in electrical and electronic equipment sold in the EU.",
+    "official_link": "https://environment.ec.europa.eu"
+  }
+}

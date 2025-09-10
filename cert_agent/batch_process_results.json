@@ -1,0 +1,102 @@
+{
+  "processed": 2,
+  "failed": 0,
+  "results": [
+    {
+      "index": 0,
+      "data": {
+        "artifact_type": "product_certification",
+        "name": "Restriction of Hazardous Substances in Electrical and Electronic Equipment (RoHS) Directive",
+        "aliases": [
+          "RoHS",
+          "RoHS Directive",
+          "RoHS 2",
+          "Directive 2011/65/EU"
+        ],
+        "issuing_body": "European Commission",
+        "region": "EU/EEA",
+        "mandatory": true,
+        "validity_period_months": 0,
+        "overview": "The RoHS Directive restricts the use of certain hazardous substances in electrical and electronic equipment (EEE) in the EU to protect human health and the environment. Compliance is required for most EEE placed on the EU market.",
+        "full_description": "The RoHS Directive (Restriction of Hazardous Substances) is an EU law that limits the use of ten hazardous substances, including lead, mercury, cadmium, hexavalent chromium, PBB, PBDE, DEHP, BBP, DBP, and DIBP, in electrical and electronic equipment. Its purpose is to reduce environmental and health risks associated with EEE waste by ensuring that products contain fewer dangerous substances, thus promoting safer recycling and disposal. The Directive applies to nearly all EEE, unless specifically excluded, and is mandatory for manufacturers and importers wishing to place such products on the EU market. Exemptions and amendments are periodically updated to reflect technological and scientific progress.",
+        "legal_reference": "Directive 2011/65/EU",
+        "domain_tags": [
+          "product_safety",
+          "environmental"
+        ],
+        "scope_tags": [
+          "electrical_equipment",
+          "electronic_equipment",
+          "consumer_electronics",
+          "industrial_equipment",
+          "medical_devices",
+          "monitoring_instruments",
+          "lighting_equipment",
+          "IT_equipment",
+          "telecommunications_equipment"
+        ],
+        "harmonized_standards": [],
+        "fee": null,
+        "application_process": "Manufacturers must ensure EEE compliance, compile technical documentation, and affix CE marking. See: https://environment.ec.europa.eu/topics/waste-and-recycling/rohs-directive/implementation-rohs-directive_en",
+        "official_link": "https://environment.ec.europa.eu/topics/waste-and-recycling/rohs-directive_en",
+        "updated_at": "2024-06-10T00:00:00Z",
+        "sources": [
+          "https://environment.ec.europa.eu/topics/waste-and-recycling/rohs-directive_en",
+          "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32011L0065",
+          "https://environment.ec.europa.eu/document/download/051e7e21-a0cc-4cb0-a3aa-ae6cb7f13488_en?filename=FAQ%20key%20guidance%20document%20-%20RoHS.pdf"
+        ],
+        "lead_time_days": null,
+        "processing_time_days": null,
+        "prerequisites": [],
+        "audit_scope": [],
+        "test_items": [
+          "lead",
+          "cadmium",
+          "mercury",
+          "hexavalent_chromium",
+          "polybrominated_biphenyls",
+          "polybrominated_diphenyl_ethers",
+          "bis(2-ethylhexyl)_phthalate",
+          "butyl_benzyl_phthalate",
+          "dibutyl_phthalate",
+          "diisobutyl_phthalate"
+        ],
+        "other_relevant_info": "Exemptions for certain applications are available and updated via delegated directives. The RoHS Directive is closely linked to the WEEE Directive, which addresses collection and recycling of EEE waste."
+      }
+    },
+    {
+      "index": 1,
+      "data": {
+        "artifact_type": null,
+        "name": null,
+        "aliases": [],
+        "issuing_body": "European Commission",
+        "region": "EU/EEA",
+        "mandatory": null,
+        "validity_period_months": null,
+        "overview": "The RoHS Directive restricts the use of certain hazardous substances in electrical and electronic equipment in the EU/EEA. Exemptions to these restrictions can be granted under specific conditions and are subject to regular reassessment.",
+        "full_description": "The RoHS Directive (Restriction of Hazardous Substances) is implemented by the European Commission to limit the use of specific hazardous materials in electrical and electronic equipment (EEE) placed on the EU/EEA market. The Directive allows for time-limited exemptions from its substance restrictions, provided that applicants demonstrate the necessity based on technical, scientific, environmental, and socioeconomic factors. Exemptions are regularly reassessed, and the process involves technical and scientific assessment studies, stakeholder consultations, and a formal decision-making procedure by the Commission, including scrutiny by the European Parliament and Council. Renewal applications must be submitted at least 18 months before expiry, and the evaluation process typically takes 18 to 24 months.",
+        "legal_reference": "Directive 2011/65/EU",
+        "domain_tags": [],
+        "scope_tags": [],
+        "harmonized_standards": [],
+        "fee": null,
+        "application_process": "1. Submit exemption/renewal application (at least 18 months before expiry). 2. Technical/scientific assessment and stakeholder consultation (~10 months). 3. Commission proposal, Member State/Parliament consultation, public feedback. 4. Delegated Directive adopted and published.",
+        "official_link": "https://environment.ec.europa.eu/topics/waste-and-recycling/rohs-directive/implementation-rohs-directive_en",
+        "updated_at": "2024-06-10T00:00:00Z",
+        "sources": [
+          "https://environment.ec.europa.eu/topics/waste-and-recycling/rohs-directive/implementation-rohs-directive_en",
+          "https://environment.ec.europa.eu/document/download/f1f65e3d-1b90-4dd1-a0d4-797bd6cabe98_en?filename=Guidance_Document.pdf",
+          "https://environment.ec.europa.eu/document/download/11d676c8-10a3-4450-87b6-da6c5c62767b_en?filename=RoHS_V_Application_Form.docx"
+        ],
+        "lead_time_days": 540,
+        "processing_time_days": null,
+        "prerequisites": [],
+        "audit_scope": [],
+        "test_items": [],
+        "other_relevant_info": "Existing exemptions remain valid if a renewal request is submitted before expiry, until a decision is made. If rejected, a transition period of 12-18 months is granted. Exemptions are reassessed regularly and are limited in time."
+      }
+    }
+  ],
+  "errors": []
+}

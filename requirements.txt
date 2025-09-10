@@ -8,3 +8,13 @@ pydantic
 
 # Utilities
 rich
+requests
+
+# LangChain and AI
+langchain
+langchain-openai
+langchain-community
+langgraph
+openai
+tiktoken
+loguru
