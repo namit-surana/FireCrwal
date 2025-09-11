@@ -93,7 +93,7 @@ The unified pipeline produces a clean, flat JSON array with only essential field
 
 ### **Unified Pipeline (Main Features):**
 - ✅ **Single Script**: One command handles everything
-- ✅ **Parallel Processing**: PDFs processed simultaneously (3x faster)
+- ✅ **Dynamic Parallel Processing**: All PDFs processed simultaneously (1:1 worker ratio)
 - ✅ **Smart Detection**: Automatically identifies PDFs vs web pages
 - ✅ **Robust Error Handling**: Timeout management and fallback queries
 - ✅ **Clean Output**: Only essential `url` and `markdown` fields
@@ -108,7 +108,7 @@ The unified pipeline produces a clean, flat JSON array with only essential field
 
 ### **PDF Processing:**
 - ✅ **Marker API**: Advanced PDF to markdown conversion
-- ✅ **Parallel Processing**: Up to 3 PDFs processed simultaneously
+- ✅ **Dynamic Parallel Processing**: All PDFs processed simultaneously (1:1 worker ratio)
 - ✅ **Retry Logic**: Automatic retry on failures (2 attempts)
 - ✅ **Fallback Support**: Uses original content if conversion fails
 - ✅ **Smart Detection**: Identifies PDFs by URL extension
@@ -146,8 +146,8 @@ The pipeline automatically tries fallback queries if the first one fails:
 ## 📈 Performance
 
 - **Search**: ~10-30 seconds for 10-20 results
-- **PDF Processing**: ~30-60 seconds per PDF (parallel processing)
-- **Total Pipeline**: ~1-3 minutes for 10 results with 1-2 PDFs
+- **PDF Processing**: ~30-60 seconds per PDF (all processed simultaneously)
+- **Total Pipeline**: ~1-3 minutes for 10 results with multiple PDFs
 - **Timeout Handling**: 30-second timeout with automatic fallbacks
 
 ## 🛠️ Troubleshooting

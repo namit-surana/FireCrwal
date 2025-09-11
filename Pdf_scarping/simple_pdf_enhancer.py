@@ -81,7 +81,72 @@ class SimplePDFEnhancer:
             return None
     
     def enhance_pdfs_in_data(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Enhance PDFs in a flat array of data"""
+        """Enhance PDFs in a flat array of data with parallel processing"""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        
+        # Separate PDFs and non-PDFs
+        pdf_items = []
+        non_pdf_items = []
+        
+        for item in data:
+            url = item.get('url', '')
+            if url.lower().endswith('.pdf') or 'pdf' in url.lower():
+                pdf_items.append(item)
+            else:
+                non_pdf_items.append(item)
+        
+        if not pdf_items:
+            print("📄 No PDFs found, returning original data")
+            return data
+        
+        print(f"🚀 Processing {len(pdf_items)} PDFs in parallel...")
+        
+        # Process PDFs in parallel - dynamic worker allocation
+        enhanced_pdfs = []
+        max_workers = len(pdf_items)
+        print(f"📊 Using {max_workers} parallel workers for {len(pdf_items)} PDFs")
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_item = {executor.submit(self._process_single_pdf, item): item for item in pdf_items}
+            
+            for future in as_completed(future_to_item):
+                try:
+                    result = future.result()
+                    enhanced_pdfs.append(result)
+                    print(f"✅ Completed: {result['url']}")
+                except Exception as e:
+                    item = future_to_item[future]
+                    print(f"❌ Failed: {item.get('url', 'Unknown')} - {e}")
+                    # Add fallback
+                    enhanced_pdfs.append({
+                        'url': item.get('url', ''),
+                        'markdown': item.get('markdown', '')
+                    })
+        
+        # Combine enhanced PDFs with non-PDF items
+        return enhanced_pdfs + non_pdf_items
+    
+    def _process_single_pdf(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        """Process a single PDF item"""
+        url = item.get('url', '')
+        markdown = item.get('markdown', '')
+        
+        print(f"📄 Processing PDF: {url}")
+        enhanced_markdown = self.convert_pdf_to_markdown(url)
+        
+        if enhanced_markdown and len(enhanced_markdown.strip()) > 0:
+            return {
+                'url': url,
+                'markdown': enhanced_markdown
+            }
+        else:
+            return {
+                'url': url,
+                'markdown': markdown  # Use original
+            }
+    
+    def enhance_pdfs_in_data_sequential(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Enhance PDFs in a flat array of data (sequential fallback)"""
         enhanced_data = []
         
         for item in data:

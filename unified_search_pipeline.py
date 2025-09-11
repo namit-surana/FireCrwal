@@ -236,7 +236,11 @@ class UnifiedSearchPipeline:
         print(f"🚀 Enhancing {len(pdf_documents)} PDFs in parallel...")
         
         enhanced_pdfs = []
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        # Dynamic worker allocation based on number of PDFs
+        max_workers = len(pdf_documents)
+        print(f"📊 Using {max_workers} parallel workers for {len(pdf_documents)} PDFs")
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_item = {executor.submit(self._process_single_pdf, item): item for item in pdf_documents}
             
             for future in as_completed(future_to_item):
@@ -319,8 +323,8 @@ def main():
         pipeline = UnifiedSearchPipeline()
         
         # Example usage - try a simpler query first
-        query = 'ROHS Certification environment'
-        limit = 10
+        query = 'site:https://foscos.fssai.gov.in/ "FSSAI License/Registration"'
+        limit = 20
         
         # Generate output filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
