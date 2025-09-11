@@ -46,8 +46,9 @@ class SimpleFirecrawlSearch:
                 "scrapeOptions": {
                     "onlyMainContent": True,
                     "formats": [{"type": "markdown"}],
-                    "proxy": "auto",
-                    "storeInCache": True
+                  
+                    "storeInCache": True,
+                    "parsers": []
                 }
             }
             
