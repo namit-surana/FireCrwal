@@ -60,6 +60,7 @@ cache/
 *.sqlite
 *.sqlite3
 *.json
+*.zip
 
 # Backup files
 backups/
